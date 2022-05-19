@@ -864,6 +864,7 @@ DELETE FROM stg_002_fapesp_exames_total WHERE 1 = 1;
 DELETE FROM stg_002_fapesp_exames_covid WHERE 1 = 1;
 DELETE FROM stg_002_fapesp_desfechos WHERE 1 = 1;
 DELETE FROM stg_002_fapesp_exames WHERE 1 = 1;
+DELETE FROM stg_002_fapesp_mapeamento_exames WHERE 1 = 1;
 </sql>
       <useVariableSubstitution>F</useVariableSubstitution>
       <sqlfromfile>F</sqlfromfile>
@@ -912,7 +913,7 @@ DELETE FROM stg_002_fapesp_exames WHERE 1 = 1;
       <parallel>N</parallel>
       <draw>Y</draw>
       <nr>0</nr>
-      <xloc>608</xloc>
+      <xloc>544</xloc>
       <yloc>208</yloc>
       <attributes_kjc/>
     </entry>
@@ -922,22 +923,25 @@ DELETE FROM stg_002_fapesp_exames WHERE 1 = 1;
       <type>SQL</type>
       <attributes/>
       <sql>INSERT INTO stg_002_fapesp_exames   
-SELECT
-	ex_todos.exame_paciente_key            AS exame_paciente_key, 
-	ex_todos.exame_atendimento_key         AS exame_atendimento_key,
-	ex_todos.exame_data_coleta             AS exame_data_coleta,
-	ex_todos.exame_origem                  AS exame_origem,
-	ex_todos.exame_exame                   AS exame_exame,
-	ex_todos.exame_analito                 AS exame_analito,
-	ex_todos.exame_resultado               AS exame_resultado,
-	ex_todos.exame_unidade_medida          AS exame_unidade_medida,
-	ex_todos.exame_valor_referencia        AS exame_valor_referencia,
-	ex_todos.exame_hospital                AS exame_hospital,
-	ex_covid.exame_metodo_deteccao_covid   AS exame_metodo_deteccao_covid
-FROM
-	stg_002_fapesp_exames_total ex_todos
-	INNER JOIN (SELECT DISTINCT exame_paciente_key, exame_metodo_deteccao_covid FROM stg_002_fapesp_exames_covid) ex_covid
-		ON ex_todos.exame_paciente_key = ex_covid.exame_paciente_key
+SELECT DISTINCT 
+	t1.exame_paciente_key           AS exame_paciente_key,
+	t1.exame_atendimento_key        AS exame_atendimento_key,
+	t1.exame_data_coleta            AS exame_data_coleta,
+	t1.exame_origem                 AS exame_origem,
+	t3.exame_fpcoms                 AS exame_exame,
+	t1.exame_analito                AS exame_analito,
+	t1.exame_resultado              AS exame_resultado,
+	t3.cd_unidade                   AS exame_unidade_medida,
+	t1.exame_valor_referencia       AS exame_valor_referencia,
+	t1.exame_hospital               AS exame_hospital,
+	t2.exame_metodo_deteccao_covid  AS exame_metodo_deteccao_covid
+FROM 
+	vodanbr.stg_002_fapesp_exames_total t1
+	INNER JOIN stg_002_fapesp_exames_covid t2  -- identificando atendimentos de pacientes com COVID_19
+        ON t2.exame_atendimento_key = t1.exame_atendimento_key
+	INNER JOIN stg_002_fapesp_mapeamento_exames t3  -- buscando apenas os exames da OMS realizados no dia em que houve teste de COVID_19
+		ON t3.de_exame = t1.exame_exame
+		AND t3.de_analito = t1.exame_analito
 ;</sql>
       <useVariableSubstitution>F</useVariableSubstitution>
       <sqlfromfile>F</sqlfromfile>
@@ -948,6 +952,73 @@ FROM
       <draw>Y</draw>
       <nr>0</nr>
       <xloc>960</xloc>
+      <yloc>208</yloc>
+      <attributes_kjc/>
+    </entry>
+    <entry>
+      <name>Mapeia COVID</name>
+      <description/>
+      <type>SQL</type>
+      <attributes/>
+      <sql>INSERT INTO stg_002_fapesp_mapeamento_exames VALUES 
+('Tgp','ALT (TGP)','U/L',114,'ALT/SGPT measurement','ALT/TGP'),
+('Transaminase Pirúvica ( Tgp )','ALT (TGP)','U/L',114,'ALT/SGPT measurement','ALT/TGP'),
+('Tgo','AST (TGO)','U/L',116,'AST/SGOT measurement','AST/TGO'),
+('Transaminase Oxalacética ( Tgo )','AST (TGO)','U/L',116,'AST/SGOT measurement','AST/TGO'),
+('Bilirrubinas Total E Fracoes','Bilirrubina Total','mg/dL',171,'Total bilirubin measurement','Bilirrubina total'),
+('Bilirrubinas, soro','Bilirrubina Total','mg/dL',171,'Total bilirubin measurement','Bilirrubina total'),
+('Citomegalovírus (CMV), Antigenemia','Citomegalovirus, pesquisa Antigenemia',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Creatino Fosfoquinase (Cpk)','CK','U/L',145,'Creatine kinase measurement','Creatina quinase'),
+('Creatinofosfoquinase Cpk-Ck','CK','U/L',145,'Creatine kinase measurement','Creatina quinase'),
+('Citomegalovírus, Avidez','CMV, Avidez IgG','%',105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Citomegalovírus, Detecção Qualitativa por PCR, Vários Materiais','CMV, Detecção',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Citomegalovírus (CMV), Sorologia IgG','CMV, IgG','UA/mL',105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Citomegalovírus (CMV), Sorologia IgM','CMV, IgM',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Citomegalovírus (CMV), PCR Quantidade Viral','CMV, Quantificação','UI/mL',105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('COVID-19-Teste Rápido (IgM e IgG), soro','Covid 19, Antic IgM/IgG, teste rápido-Observ',NULL,44,'Coronavirus','Coronavírus'),
+('Sorologia - Coronavírus, IgA','Covid 19, Anticorpos IgA',NULL,44,'Coronavirus','Coronavírus'),
+('Sorologia - Coronavírus, IgA','Covid 19, Anticorpos IgA, índice',NULL,44,'Coronavirus','Coronavírus'),
+('Sorologia - Coronavírus, IgG','Covid 19, Anticorpos IgG',NULL,44,'Coronavirus','Coronavírus'),
+('Sorologia - Coronavírus, IgG','Covid 19, Anticorpos IgG, índice',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgG, Quimiolumin.-Índice','UA/mL',44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgG, Quimioluminescência','UA/mL',44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgG, Quimioluminescência',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Teste Rápido (IgM e IgG), soro','Covid 19, Anticorpos IgG, teste rápido',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgM, Quimiolumin.-Índice','UA/mL',44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgM, Quimioluminescência','UA/mL',44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos IgM, Quimioluminescência',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Teste Rápido (IgM e IgG), soro','Covid 19, Anticorpos IgM, teste rápido',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos Totais, Eletroquim-Índic',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Anticorpos Totais, Eletroquimiolumi',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Teste Rápido (IgM e IgG), soro','Covid 19, Material',NULL,44,'Coronavirus','Coronavírus'),
+('Sars Cov-2, Teste Molecular Rápido Para Detecção, Vários Materiais','Covid 19, Material',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Sorologia - Conclusão',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Sorologia IgM e IgG por quimiluminescência, soro','Covid 19, Sorologia - Interpretação',NULL,44,'Coronavirus','Coronavírus'),
+('COVID-19-Teste Rápido (IgM e IgG), soro','Covid 19,Antic IgM/IgG,teste rápido-Interpret',NULL,44,'Coronavirus','Coronavírus'),
+('Calculo da Estimativa da Taxa, de Filtracao Glomular, soro','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Clearence De Creatinina','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Creatinina','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Creatinina, soro','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Paratormonio, Dosagem','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Creatinina, prova rápida','Creatinina, teste rápido','mg/dL',146,'Creatinine measurement','Creatinina'),
+('Dengue, antígeno NS1, soro, teste rápido','Dengue, antígeno NS1','ng/mL',105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Dengue, Anticorpo IgG, soro','Dengue, IgG',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Dengue, anticorpo IgG, teste rápido','Dengue, IgG',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Dengue, Anticorpo IgM, soro','Dengue, IgM',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Dengue, anticorpo IgM, teste rápido','Dengue, IgM',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),
+('Desidrogenase Lática  ( LDH )','DHL','U/L',162,'LDH measurement','LDH'),('Desidrogenase Lática (DHL/L)','DHL','U/L',162,'LDH measurement','LDH'),
+('D. Dimeros(Dimeros De Fibrina)','Dimeros D, quant','ng/mL',148,'D-dimer measurement','Dimero D'),
+('Ferritina, Dosagem','Ferritina','microg/L',156,'Ferritin measurement','Ferritina'),
+('Hematócrito - Kit Urg','Hematocrito','%',157,'Haematocrit measurement','Hematócrito'),('Eritrograma (Eritrócitos, Hemoglobina, Hematócrito)','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Hb/Ht','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Hematocrito','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Hemograma','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Hemograma automatizado pré-QT','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Hemograma, sangue total','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('Eritrograma (Eritrócitos, Hemoglobina, Hematócrito)','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hb/Ht','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hemoglobina','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hemoglobina - Kit Urg','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hemograma','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hemograma automatizado pré-QT','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('Hemograma, sangue total','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('HIV-1 Quant (Carga Viral), PCR','HIV-1 Quantificação','UI/mL',85,'HIV','HIV'),('HIV, Sorologia (Elisa)','HIV1/HIV2',NULL,85,'HIV','HIV'),('HIV, Sorologia (Elisa)','HIV1/HIV2 - Índice',NULL,85,'HIV','HIV'),('HIV 1/2, Teste Rápido','HIV1/HIV2 -Imunocrom',NULL,85,'HIV','HIV'),('Antígeno, Influenza, Teste Rápido (AGINFLU)','Influenza A e B - teste rápido','ng/mL',46,'Influenza virus','Vírus influenza'),('Interleucina 6, soro','Interleucina 6','pg/mL',159,'IL-6 measurement','IL-6'),('Ácido Lático, Sangue Arterial','Lactato, arterial','mg/dL',161,'Lactate measurement','Lactose'),('Lactato','Lactato, plasma','mg/dL',161,'Lactate measurement','Lactose'),('Lactato - Kit Urg','Lactato, sangue','mg/dL',161,'Lactate measurement','Lactose'),('Lactato - URG','Lactato, sangue','mg/dL',161,'Lactate measurement','Lactose'),('Hemograma','Leucócitos','/mm3',226,'WBC count measurement','Leucócitos'),('Hemograma automatizado pré-QT','Leucócitos','/mm3',226,'WBC count measurement','Leucócitos'),('Hemograma, sangue total','Leucócitos','/mm3',226,'WBC count measurement','Leucócitos'),('Citomegalovírus, Detecção Qualitativa por PCR, Vários Materiais','Observação',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Gasometria Arterial','pCO2 arterial','mmHg',247,'PaCO2 value','Pressão parcial do CO2'),('Hemograma','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Hemograma automatizado pré-QT','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Hemograma, sangue total','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Plaquetas, Contagem','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Plaquetas, contagem especial, sangue total','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Plaquetas, contagem, sangue total','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('Gasometria Arterial','pO2 arterial','mmHg',246,'PaO2 value','Pressão parcial do O2'),('Potássio','Potássio','mEq/L',164,'Potassium measurement','Potássio'),('Potássio (K)','Potássio','mEq/L',164,'Potassium measurement','Potássio'),('Potássio - Kit Urg','Potássio, sangue','mEq/L',164,'Potassium measurement','Potássio'),('Potássio, sangue total','Potássio, sangue total','mEq/L',164,'Potassium measurement','Potássio'),('Pró-calcitonina, Dosagem no Plasma','Procalcitonina','ng/mL',165,'Procalcitonin measurement','Procalcitonina'),('Gasometria Arterial','Sat O2 arterial','%',40,'Oxygen saturation','Saturação de oxigênio'),('Sódio','Sódio','mEq/L',170,'Sodium measurement','Sódio'),('Sódio, Soro','Sódio','mEq/L',170,'Sodium measurement','Sódio'),('Sódio - Kit Urg','Sódio, sangue','mEq/L',170,'Sodium measurement','Sódio'),('Protrombina, Tempo de, plasma','Tempo de Protrombina','segundos',169,'PT measurement','TP'),('Tempo E Ativid. Protrombina (Tp)','Tempo de Protrombina','segundos',169,'PT measurement','TP'),('Tp Corrigido Com 50% Plasma Normal','Tempo de Protrombina','segundos',169,'PT measurement','TP'),('Protrombina, Tempo de, teste rápido, para Hospitais, plasma','Tempo de Protrombina - teste rápido','segundos',169,'PT measurement','TP'),('Troponina','Troponina','ng/mL',172,'Troponin measurement','Troponina'),('Troponina T Ultrassensível, plasma','Troponina T ultrassensível',NULL,172,'Troponin measurement','Troponina'),('Tempo Tromb.Parcial Ativada','TTPA','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tromboplastina Parcial Ativada, Tempo de, plasma','TTPA','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Ttpa Corrigido Com Plasma Normal','TTPA','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tempo Tromb.Parcial Ativada','TTPA-Normal do dia',NULL,115,'APTT/APTR measurement','TTPA/APTR'),('Tromboplastina Parcial Ativada, Tempo de, plasma','TTPA-Normal do dia',NULL,115,'APTT/APTR measurement','TTPA/APTR'),('Ttpa Corrigido Com Plasma Normal','TTPA-Normal do dia',NULL,115,'APTT/APTR measurement','TTPA/APTR'),('Tempo de tromboplastina parcial ativada, teste rápido, para Hospitais, plasma','TTPA-Normal do dia - teste rápido','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tromboplastina Parcial Ativada, Tempo de, plasma','TTPA-Paciente/Normal','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Ttpa Corrigido Com Plasma Normal','TTPA-Paciente/Normal','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tempo de tromboplastina parcial ativada, teste rápido, para Hospitais, plasma','TTPA-Paciente/Normal - teste rápido','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tempo Tromb.Parcial Ativada','TTPA-Paciente/Normal (após mistura)','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tempo Tromb.Parcial Ativada','TTPA - Paciente/Normal','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Tempo de tromboplastina parcial ativada, teste rápido, para Hospitais, plasma','TTPA - teste rápido','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('Uréia','Uréia','mg/dL',174,'Urea (BUN) measurement','Uréia (BUN)'),('Uréia, soro','Uréia','mg/dL',174,'Urea (BUN) measurement','Uréia (BUN)'),('Hemossedimentação(Vhs) 1.Hora','VHS','mm',118,'ESR measurement','VHS'),('Vírus Influenza A, Teste Molecular para Detecção','Vírus A/H1N1/SUÍNO',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A10',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A16',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A2',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A4',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A7',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Virus Coxsackie - A9',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B1',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B1',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B2',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B2',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B3',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B3',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B4',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B4',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B5',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B5',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie B, Anticorpos, vários materiais','Vírus Coxsackie - B6',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Enterovírus, painel sorológico, vários materiais','Vírus Coxsackie - B6',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 10',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 16',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 2',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 4',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 7',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Coxsackie A, Anticorpos Totais, soro','Virus Coxsackie A tipo 9',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Epstein Barr vírus, avidez IgG','Virus Epstein Barr, Avidez IgG','%',105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Pcr Quantitativo Para Hhv6','Vírus Herpes-6 (HHV6)',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Vírus Influenza A, Teste Molecular para Detecção','Vírus Influenza A',NULL,42,'Other respiratory pathogen','Outro patógeno respiratório'),('Vírus respiratórios, sincicial, influenza, parainfluenza, adeno, fluorescência','Vírus respiratórios - detecção',NULL,42,'Other respiratory pathogen','Outro patógeno respiratório'),('Detecção de vírus respiratório, por PCR, Vários Materiais','Vírus Respiratórios - Detecção molecular',NULL,42,'Other respiratory pathogen','Outro patógeno respiratório'),('Zikavirus, Anticorpo IgG, soro','Zika IgG',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Zikavirus, Anticorpo IgM, soro','Zika IgM',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Zikavirus, Anticorpo IgG, soro','Zika vírus - IgG - Índice',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Zikavirus, Anticorpo IgM, soro','Zika vírus - IgM - Índice',NULL,105,'Which other pathogen of public health interest detected','Qual outro patógeno'),('Proteína C Reativa, plasma','Proteína C-Reativa','mg/dL',147,'CRP measurement','ProtCReativa'),('Proteína C Reativa, por imunoturbidimetria, soro','Proteína C-Reativa','mg/dL',147,'CRP measurement','ProtCReativa'),('Proteína C Reativa, soro','Proteína C-Reativa','mg/dL',147,'CRP measurement','ProtCReativa'),('Protrombina, Tempo de, plasma','TP/INR','segundos',160,'TP/INR measurement','TP/INR'),('Tempo E Ativid. Protrombina (Tp)','TP/INR','segundos',160,'TP/INR measurement','TP/INR'),('Tp Corrigido Com 50% Plasma Normal','TP/INR','segundos',160,'TP/INR measurement','TP/INR'),('Protrombina, Tempo de, teste rápido, para Hospitais, plasma','TP/INR - teste rápido',NULL,160,'TP/INR measurement','TP/INR'),('COVID-19-PCR para SARS-COV-2, Vários Materiais (Fleury)','Coronavírus (2019-nCoV)',NULL,45,'PCR measurement','PCR'),('Sars Cov-2, Teste Molecular Rápido Para Detecção, Vários Materiais','Covid 19, Detecção por PCR',NULL,45,'PCR measurement','PCR'),('Detecção de Coronavírus (NCoV-2019) POR PCR (Anatomia Patológica)','Detecção de Coronavírus (NCoV-2019) POR PCR (Anatomia Patológica)',NULL,45,'PCR measurement','PCR'),('COVID-19-PCR para SARS-COV-2, Vários Materiais (Fleury)','Material (2019-nCoV) ',NULL,45,'PCR measurement','PCR'),('Detecção de vírus respiratório, por PCR, Vários Materiais','Virusmol, Coronavírus 229E',NULL,45,'PCR measurement','PCR'),('Detecção de vírus respiratório, por PCR, Vários Materiais','Virusmol, Coronavírus HKU1',NULL,45,'PCR measurement','PCR'),('Detecção de vírus respiratório, por PCR, Vários Materiais','Virusmol, Coronavírus NL63',NULL,45,'PCR measurement','PCR'),('Detecção de vírus respiratório, por PCR, Vários Materiais','Virusmol, Coronavírus OC43',NULL,45,'PCR measurement','PCR'),('TRANSAMINASE GLUTAMICO-PIRUVICA (TGP)','ALT (TGP)','U/L',114,'ALT/SGPT measurement','ALT/TGP'),('TRANSAMINASE GLUTAMICO-OXALACETICA (TGO)','AST (TGO)','U/L',116,'AST/SGOT measurement','AST/TGO'),('BILIRRUBINAS, plasma','Bilirrubina Total','mg/dL',171,'Total bilirubin measurement','Bilirrubina total'),('CREATINOQUINASE TOTAL (CPK), plasma','CK','U/L',145,'Creatine kinase measurement','Creatina quinase'),('CREATINOQUINASE TOTAL (CK), soro','CK','U/L',145,'Creatine kinase measurement','Creatina quinase'),('CKMB massa, plasma','CK-MB, Eletroquimioluminescência','ng/mL',145,'Creatine kinase measurement','Creatina quinase'),('CREATININA, plasma','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),('CREATININA, amostra isolada na urina','Creatinina, urina isolada','g/L',146,'Creatinine measurement','Creatinina'),('DEPURACAO DE CREATININA ENDOGENA','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),('DEPURACAO DE CREATININA ENDOGENA','Creatinina, Depuração corrigida','mL/minuto',146,'Creatinine measurement','Creatinina'),('DEPURACAO DE CREATININA ENDOGENA','Creatinina, Depuração',NULL,146,'Creatinine measurement','Creatinina'),('PROTEÍNA E RELAÇÃO PROTEÍNA/CREATININA, amostra isolada de urina','Creatinina, urina isolada','g/L',146,'Creatinine measurement','Creatinina'),('MAGNESIO, urina','Creatinina, urina',NULL,146,'Creatinine measurement','Creatinina'),('ESTIMATIVA DA FILTRAÇÃO GLOMERULAR, soro','Creatinina','mg/dL',146,'Creatinine measurement','Creatinina'),('CREATININA, urina','Creatinina, urina',NULL,146,'Creatinine measurement','Creatinina'),('DIMEROS D, plasma','Dimeros D, quantitativo','ng/mL',148,'D-dimer measurement','Dimero D'),('FERRITINA, soro','Ferritina','microg/L',156,'Ferritin measurement','Ferritina'),('SERIE VERMELHA, sangue total','Hematócrito','%',157,'Haematocrit measurement','Hematócrito'),('SERIE VERMELHA, sangue total','Hemoglobina','g/dL',158,'Haemoglobin measurement','Hemoglobina'),('HIV1/HIV2, ANTICORPOS E ANTÍGENO, soro','HIV1/HIV2 - Índice',NULL,85,'HIV','HIV'),('HIV1/HIV2, ANTICORPOS E ANTÍGENO, soro','HIV1/HIV2',NULL,85,'HIV','HIV'),('HIV1/HIV2, ANTICORPOS POR TESTE RÁPIDO, soro','HIV1/HIV2 -Imunocrom',NULL,85,'HIV','HIV'),('SÉRIE BRANCA, sangue total','Leucócitos','/mm3',226,'WBC count measurement','Leucócitos'),('GASOMETRIA VENOSA','pCO2 venoso','mmHg',247,'PaCO2 value','Pressão parcial do CO2'),('PLAQUETAS, sangue total','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('PLAQUETAS','Plaquetas','/mm3',163,'Platelets measurement','Plaquetas'),('GASOMETRIA VENOSA','pO2 venoso','mmHg',246,'PaO2 value','Pressão parcial do O2'),('POTASSIO, soro','Potássio','mEq/L',164,'Potassium measurement','Potássio'),('POTASSIO, plasma','Potássio','mEq/L',164,'Potassium measurement','Potássio'),('POTASSIO, urina','Potássio, urina 24h','mEq/L',164,'Potassium measurement','Potássio'),('PROCALCITONINA, plasma','Procalcitonina','ng/mL',165,'Procalcitonin measurement','Procalcitonina'),('GASOMETRIA VENOSA','Sat O2 venoso','%',40,'Oxygen saturation','Saturação de oxigênio'),('SODIO, plasma','Sódio','mEq/L',170,'Sodium measurement','Sódio'),('SÓDIO, amostra isolada de urina','Sódio, urina isolada','mEq/L',170,'Sodium measurement','Sódio'),('SODIO, urina','Sódio, urina 24h','mEq/L',170,'Sodium measurement','Sódio'),('TROPONINA I, plasma','Troponina I','ng/mL',172,'Troponin measurement','Troponina'),('TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA, plasma','TTPA','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA, plasma','TTPA-Paciente/Normal','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA, plasma','TTPA-Paciente/Normal (após mistura)','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA, URGENTE, plasma','TTPA','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('TEMPO DE TROMBOPLASTINA PARCIAL ATIVADA, URGENTE, plasma','TTPA-Paciente/Normal','segundos',115,'APTT/APTR measurement','TTPA/APTR'),('UREIA, plasma','Uréia','mg/dL',174,'Urea (BUN) measurement','Uréia (BUN)'),('HEMOSSEDIMENTACAO, sangue total','VHS','mm',118,'ESR measurement','VHS'),('PROTEINA C-REATIVA, plasma','Proteína C-Reativa','mg/dL',147,'CRP measurement','ProtCReativa'),('PROTEINA C-REATIVA, soro','Proteína C-Reativa','mg/dL',147,'CRP measurement','ProtCReativa'),('TEMPO DE PROTROMBINA, plasma','TP/INR','segundos',160,'TP/INR measurement','TP/INR'),('TEMPO DE PROTROMBINA, URGENTE, plasma','TP/INR','segundos',160,'TP/INR measurement','TP/INR'),('NOVO CORONAVÍRUS 2019 (SARS-CoV-2), DETECÇÃO POR PCR','Covid 19, Detecção por PCR',NULL,45,'PCR measurement','PCR'),('DETECÇÃO DE CHLAMYDIA TRACHOMATIS POR MÉTODO MOLECULAR','Clamidia Trachomatis PCR',NULL,45,'PCR measurement','PCR'),('DETECÇÃO DE NEISSERIA GONORRHOEAE POR PCR','Neisseria Gonorrhoeae PCR',NULL,45,'PCR measurement','PCR'),('DETECÇÃO DE CHLAMYDIA TRACHOMATIS POR MÉTODO MOLECULAR','Clamidia Trachomatis PCR','microg/g creatinina',45,'PCR measurement','PCR');</sql>
+      <useVariableSubstitution>F</useVariableSubstitution>
+      <sqlfromfile>F</sqlfromfile>
+      <sqlfilename/>
+      <sendOneStatement>F</sendOneStatement>
+      <connection>DADOS_FAPESP</connection>
+      <parallel>N</parallel>
+      <draw>Y</draw>
+      <nr>0</nr>
+      <xloc>736</xloc>
       <yloc>208</yloc>
       <attributes_kjc/>
     </entry>
@@ -1036,6 +1107,15 @@ FROM
     </hop>
     <hop>
       <from>Extração e Carga STG 2 - Fleury</from>
+      <to>Mapeia COVID</to>
+      <from_nr>0</from_nr>
+      <to_nr>0</to_nr>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Mapeia COVID</from>
       <to>Preenche EXAMES</to>
       <from_nr>0</from_nr>
       <to_nr>0</to_nr>

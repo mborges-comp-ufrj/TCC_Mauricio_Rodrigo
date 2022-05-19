@@ -571,11 +571,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Add constants</from>
-      <to>Select values 2 3</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Extrai Exames - Fleury</from>
       <to>Add constants</to>
       <enabled>Y</enabled>
@@ -1030,6 +1025,16 @@
       <to>Calcula Idade</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Add constants</from>
+      <to>Gen ID_ATENDIMENTO</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Gen ID_ATENDIMENTO</from>
+      <to>Select values 2 3</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
   <step>
     <name>Add constants</name>
@@ -1043,18 +1048,6 @@
       <schema_name/>
     </partitioning>
     <fields>
-      <field>
-        <name>ID_ATENDIMENTO</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <length>100</length>
-        <precision>-1</precision>
-        <set_empty_string>N</set_empty_string>
-      </field>
       <field>
         <name>HOSPITAL</name>
         <type>String</type>
@@ -1077,7 +1070,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>464</xloc>
+      <xloc>320</xloc>
       <yloc>416</yloc>
       <draw>Y</draw>
     </GUI>
@@ -2637,7 +2630,7 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>288</xloc>
+      <xloc>192</xloc>
       <yloc>416</yloc>
       <draw>Y</draw>
     </GUI>
@@ -5373,8 +5366,8 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>608</xloc>
-      <yloc>96</yloc>
+      <xloc>672</xloc>
+      <yloc>64</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -5791,8 +5784,41 @@
       </output>
     </remotesteps>
     <GUI>
-      <xloc>736</xloc>
-      <yloc>80</yloc>
+      <xloc>768</xloc>
+      <yloc>64</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Gen ID_ATENDIMENTO</name>
+    <type>Formula</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <formula>
+      <field_name>ID_ATENDIMENTO</field_name>
+      <formula_string>[ID_PACIENTE]&amp;[DT_COLETA]</formula_string>
+      <value_type>String</value_type>
+      <value_length>-1</value_length>
+      <value_precision>-1</value_precision>
+      <replace_field/>
+    </formula>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>432</xloc>
+      <yloc>416</yloc>
       <draw>Y</draw>
     </GUI>
   </step>

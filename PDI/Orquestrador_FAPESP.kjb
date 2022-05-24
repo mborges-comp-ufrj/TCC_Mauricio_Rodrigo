@@ -923,7 +923,7 @@ DELETE FROM stg_002_fapesp_mapeamento_exames WHERE 1 = 1;
       <type>SQL</type>
       <attributes/>
       <sql>INSERT INTO stg_002_fapesp_exames   
-SELECT DISTINCT 
+SELECT
 	t1.exame_paciente_key           AS exame_paciente_key,
 	t1.exame_atendimento_key        AS exame_atendimento_key,
 	t1.exame_data_coleta            AS exame_data_coleta,
@@ -937,11 +937,28 @@ SELECT DISTINCT
 	t2.exame_metodo_deteccao_covid  AS exame_metodo_deteccao_covid
 FROM 
 	vodanbr.stg_002_fapesp_exames_total t1
-	INNER JOIN stg_002_fapesp_exames_covid t2  -- identificando atendimentos de pacientes com COVID_19
+	INNER JOIN (
+		SELECT 
+			ROW_NUMBER() OVER (PARTITION BY exame_atendimento_key) AS rnum, 
+			exame_atendimento_key,
+			exame_metodo_deteccao_covid 
+		FROM stg_002_fapesp_exames_covid
+	) t2  -- Identificando atendimentos de pacientes com COVID_19
         ON t2.exame_atendimento_key = t1.exame_atendimento_key
-	INNER JOIN stg_002_fapesp_mapeamento_exames t3  -- buscando apenas os exames da OMS realizados no dia em que houve teste de COVID_19
+	INNER JOIN (
+		SELECT
+			ROW_NUMBER() OVER (PARTITION BY de_exame, de_analito) AS rnum,
+			de_exame,
+			de_analito,
+			exame_fpcoms,
+			cd_unidade
+		FROM stg_002_fapesp_mapeamento_exames
+	) t3  -- Mapeamento dos nomes dos exames para o padrão da OMS
 		ON t3.de_exame = t1.exame_exame
 		AND t3.de_analito = t1.exame_analito
+WHERE 
+	t2.rnum = 1
+	AND t3.rnum = 1
 ;</sql>
       <useVariableSubstitution>F</useVariableSubstitution>
       <sqlfromfile>F</sqlfromfile>
